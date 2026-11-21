@@ -1014,7 +1014,9 @@ describe('an undo that names a mode, on a theme that sets the thing', () => {
     await themeEditSet('mo', 'mode', 'dark-only', {cwd});
     const own = await lines('mo', 'reset the dark mode accent');
     expect(own.writes).toEqual(['undo mo --color-accent']);
-    expect(own.text).not.toMatch(/both modes/);
+    expect(own.text).toMatch(
+      /saved for both modes, so the light mode that a toast or a lightbox shows goes back to the base too/,
+    );
     // (The build still writes that setting for the light mode's regions, a
     // toast or a lightbox: an undo of the light mode alone cannot take it.)
     const other = await lines('mo', 'reset the light mode accent');

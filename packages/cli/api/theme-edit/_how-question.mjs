@@ -19572,7 +19572,13 @@ export function draftAnswer(ctx, env, question) {
         unmet: `${what}${on ? ` on ${on}` : ''}`,
       };
     return {
-      text: `take back what ${env.slug} sets for ${what}${on ? ` on ${on}` : ''}: undo restores the base value`,
+      text: `take back what ${env.slug} sets for ${what}${on ? ` on ${on}` : ''}: undo restores the base value${
+        // (A one-mode theme's setting saved with no mode is built for the
+        // other mode's regions too.)
+        mode && !modal && ofMode.some(st => !st.mode)
+          ? ` (it is saved for both modes, so the ${mode === 'dark' ? 'light' : 'dark'} mode that a toast or a lightbox shows goes back to the base too)`
+          : ''
+      }`,
       options: [
         ofMode.map(
           st =>

@@ -20,7 +20,10 @@ import {
   makeLinkedFixture,
   removeLinkedFixture,
 } from '../../test-utils/linked-fixture.mjs';
-import {FIXTURE_PACKAGES} from '../../test-utils/base-theme-fixture.mjs';
+import {
+  FIXTURE_PACKAGES,
+  writeFixtureBaseTheme,
+} from '../../test-utils/base-theme-fixture.mjs';
 import {installRealBaseThemes} from '../../test-utils/real-base-themes.mjs';
 
 vi.mock('./_preview.mjs', async importOriginal =>
@@ -286,7 +289,11 @@ describe('the badges dial', () => {
 
   it('a badge the base theme rounds itself keeps its shape under rounder corners', async ctx => {
     if (needBases(ctx)) return;
-    await themeEditNew('pop', {cwd, like: 'y2k'});
+    // (A base that pins its own pill badge: no bundled theme does.)
+    writeFixtureBaseTheme(cwd, 'matcha', {
+      badge: {base: {borderRadius: '9999px'}},
+    });
+    await themeEditNew('pop', {cwd, like: 'matcha'});
     await themeEditSet('pop', 'corners', 'large', {cwd});
     expect(
       badgeRules('pop')

@@ -12411,6 +12411,18 @@ export function draftAnswer(ctx, env, question) {
     c?.mode && new RegExp(`\\b${c.mode}\\b`, 'i').test(c.text ?? '')
       ? /** @type {string} */ (c.mode)
       : null;
+  /** A one-mode theme's only mode, which a setting or change with no mode is. */
+  const ownMode = modal
+    ? null
+    : env.data.mode === 'dark-only'
+      ? 'dark'
+      : 'light';
+  /**
+   * Whether a setting or change of mode `m` is of the mode an undo names.
+   * @param {string | null | undefined} m
+   * @param {string} said
+   */
+  const ofSaidMode = (m, said) => m === said || (!m && said === ownMode);
   /**
    * The mode a page color is for: the mode said, else, on a theme with
    * both modes, a clearly light color's light mode and a clearly dark
@@ -19541,8 +19553,10 @@ export function draftAnswer(ctx, env, question) {
     // ("undo the light mode accent change": a setting of that mode only. A
     // setting saved for both modes has no light half to take back alone.)
     const mode = saidMode(c);
-    const ofMode = mode ? matches.filter(st => st.mode === mode) : matches;
-    const bothModes = matches.filter(st => !st.mode);
+    const ofMode = mode
+      ? matches.filter(st => ofSaidMode(st.mode, mode))
+      : matches;
+    const bothModes = modal ? matches.filter(st => !st.mode) : [];
     if (mode && !ofMode.length && bothModes.length)
       return {
         text: `${env.slug} sets ${what}${on ? ` on ${on}` : ''} the same in both modes, so it cannot be taken back in ${mode} mode only; an undo that names no mode takes it back in both`,
@@ -29356,7 +29370,7 @@ export function draftAnswer(ctx, env, question) {
           return false;
         if (undoAt >= 0 && clauses.indexOf(c) >= undoAt) return false;
         // (An undo that names a mode takes back a change of that mode only.)
-        if (!anyMode && undoMode && c.mode !== undoMode) return false;
+        if (!anyMode && undoMode && !ofSaidMode(c.mode, undoMode)) return false;
         // (Of the part the undo names; with no part, of the whole theme.)
         const onPart = part
           ? c.parts?.some(
@@ -29431,7 +29445,8 @@ export function draftAnswer(ctx, env, question) {
         );
       });
     if (otherMode.length && !saved) {
-      const saidFor = /** @type {any} */ (draftClause.get(otherMode[0]))?.mode;
+      const saidFor =
+        /** @type {any} */ (draftClause.get(otherMode[0]))?.mode ?? ownMode;
       unmet.text = `the undo names ${undoMode} mode, but the change said earlier in this ask is for ${saidFor ? `${saidFor} mode` : 'both modes'}, so nothing is taken back and it stays written`;
       const uc0 = /** @type {any} */ (draftClause.get(unmet));
       if (uc0) answeredByUndo.add(uc0);

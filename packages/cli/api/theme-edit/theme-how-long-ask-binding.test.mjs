@@ -1002,6 +1002,37 @@ describe('an undo that names a mode, on a theme that sets the thing', () => {
     }
   }, 300_000);
 
+  it('on a theme with one mode, takes back its setting in that mode, and only that', async test => {
+    if (unbuilt) {
+      console.warn(`skipped: ${unbuilt}`);
+      test.skip();
+    }
+    // (An accent saved for both modes, then the theme made dark only: its
+    // one setting is the dark mode's.)
+    await themeEditNew('mo', {cwd, like: 'neutral'});
+    await themeEditSet('mo', '--color-accent', '#2563eb', {cwd});
+    await themeEditSet('mo', 'mode', 'dark-only', {cwd});
+    const own = await lines('mo', 'reset the dark mode accent');
+    expect(own.writes).toEqual(['undo mo --color-accent']);
+    expect(own.text).not.toMatch(/both modes/);
+    // (A light-mode accent kept from before the theme was made dark only
+    // is not the dark mode's.)
+    await themeEditNew('mk', {cwd, like: 'neutral'});
+    await themeEditSet('mk', '--color-accent', '#2563eb', {cwd, mode: 'light'});
+    await themeEditSet('mk', 'mode', 'dark-only', {cwd});
+    expect((await lines('mk', 'reset the dark mode accent')).writes).toEqual(
+      [],
+    );
+    // (A light-only theme has no dark mode to take a change back from.)
+    await themeEditNew('ml1', {cwd, like: 'neutral'});
+    await themeEditSet('ml1', 'mode', 'light-only', {cwd});
+    const missing = await lines(
+      'ml1',
+      'make the accent red. undo the dark mode accent change',
+    );
+    expect(missing.writes.some(w => / accent '#dc2626'$/.test(w))).toBe(true);
+  }, 300_000);
+
   it('on its own, takes back only a setting of that mode', async test => {
     if (unbuilt) {
       console.warn(`skipped: ${unbuilt}`);

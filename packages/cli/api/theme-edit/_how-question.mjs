@@ -4694,9 +4694,26 @@ export function draftAnswer(ctx, env, question) {
       // ugly", "the shadow on the cards is too strong". Any other word, a
       // side, a state, a variant, a mode or a second part, keeps the
       // earlier reading.)
-      const others = own
+      // (A state word said just before the part, "the border on the selected
+      // tab", "hovered cards", takes the look away in that state only. It is
+      // read with the part, so "active tab" is the selected one; the part's
+      // own words never name a state, "hover card".)
+      const before = own
+        .slice(0, own.toLowerCase().indexOf(longest[0].trim()))
+        .trim()
+        .split(/\s+/)
+        .pop()
+        ?.toLowerCase();
+      const state = before
+        ? stateWord(
+            before === 'active' ? `${before} ${longest[0].trim()}` : before,
+          )
+        : null;
+      const besidePart = own
         .toLowerCase()
         .replace(longest[0].trim(), ' ')
+        .replace(state ? new RegExp(`\\b${before}\\b`) : /$^/, ' ');
+      const others = besidePart
         .replace(new RegExp(`\\b${look}\\b`, 'i'), ' ')
         .split(/[^a-z]+/)
         .filter(Boolean);
@@ -4709,7 +4726,8 @@ export function draftAnswer(ctx, env, question) {
         return m;
       // (A "!" or "?" before it ends the ask before, as a full stop does.)
       const stop = String(lead).replace(/[!?]/, '.');
-      return `${stop}no ${word} on ${part}`;
+      const when = state ? ` when ${state}` : '';
+      return `${stop}no ${word} on ${part}${when}`;
     },
   );
   // "darker but not darker than #1e3a8a": a color bound is a limit every

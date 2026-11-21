@@ -1759,6 +1759,9 @@ const DIAL_NOUN = {
   'text-size': String.raw`text[- ]size|font[- ]size|type size`,
   surfaces: String.raw`surfaces?`,
   type: String.raw`type|typography`,
+  // ("darker on press", "a lighter wash while hovered": the feel dials.)
+  press: String.raw`(?:(?:wash|tint)\s+)?(?:on|when|while)\s+(?:a\s+)?(?:press(?:ed|ing)?|click(?:ed|ing)?|tap(?:ped)?)`,
+  hover: String.raw`(?:(?:wash|tint)\s+)?(?:on|when|while)\s+(?:a\s+)?hover(?:ed|ing)?`,
 };
 
 /**
@@ -1775,7 +1778,9 @@ function dialRung(text) {
       .filter(v => /^[a-z]+$/.test(v) && v !== 'more' && v !== 'less');
     const number = /<number>/.test(String(DIALS[dial]?.values ?? ''))
       ? String.raw`|\d+(?:\.\d+)?`
-      : '';
+      : /<percent>/.test(String(DIALS[dial]?.values ?? ''))
+        ? String.raw`|\d+(?:\.\d+)?%`
+        : '';
     const rung = `(${values.join('|')}${number})`;
     const m =
       new RegExp(
@@ -6531,6 +6536,10 @@ export function draftAnswer(ctx, env, question) {
     /^\s*(?:below|above|under|over)\s+\d+(?:px|em|rem)\s*$|^\s*(?:on|for) (?:mobile|phones?|tablets?|desktops?|print)\s*$|^\s*when printing\s*$|^\s*(?:(?:in|on) (?:the )?(?:dark|light) mode )?#[0-9a-f]{3,8}(?: in (?:dark|light)(?: mode)?)?\s*$|^\s*(?:leave|keep) (?:the )?(?:dark|light) mode (?:alone|as is|as it is|untouched)\s*$|^\s*(?:only |just )?(?:(?:in|on|for|when|while) )?(?:(?:the )?(?:dark|light) mode|hover(?:ed|ing)?|focus(?:ed)?|press(?:ed)?|click(?:ed)?|selected|checked|disabled)(?: only)?\s*$|^\s*(?:at (?:least|most) |about |around |roughly |maybe )?(?:-?\d*\.?\d+(?:px|rem|em|%|ms|s)?|#[0-9a-f]{3,8})\s*$/i;
   const isAsk = (/** @type {string} */ x) => {
     if (NEUTRAL.test(x)) return true;
+    // ("darker on press", "8% tint on hover": a feel dial's rung, said
+    // with its moment, asks for that look.)
+    const feel = dialRung(x.toLowerCase());
+    if (feel && (feel.dial === 'press' || feel.dial === 'hover')) return true;
     // ("a calm, dark theme": a look said for the theme, its mode, is an
     // ask of its own.)
     if (/\b(?:dark|light)-only (?:theme|look|ui|interface|design)\b/i.test(x))
@@ -8212,7 +8221,10 @@ export function draftAnswer(ctx, env, question) {
       ) ||
       (bare &&
         (ROLE_WORDS.test(subject?.[1] ?? '') ||
-          Object.hasOwn(DIALS, subject?.[1] ?? ''))) ||
+          // (A feel dial is named for its moment, a state: "hover #0065ff"
+          // after a part is that part's hover.)
+          (Object.hasOwn(DIALS, subject?.[1] ?? '') &&
+            stateWord(subject?.[1] ?? '') == null))) ||
       /^the\s+(?:text|shadows|corners)\b(?!-)/.test(c.text) ||
       /^text\s+colou?r\b/.test(c.text) ||
       /\b(?:main|body|all)\s+text\b/.test(c.text)
@@ -13753,7 +13765,13 @@ export function draftAnswer(ctx, env, question) {
       if (
         m &&
         !steps.some(
-          x => x.state || x.when || String(x.thing ?? '').includes(st),
+          x =>
+            x.state ||
+            x.when ||
+            String(x.thing ?? '').includes(st) ||
+            // (A feel dial is that moment's look: "darker on press".)
+            ((x.thing === 'press' || x.thing === 'hover') &&
+              String(st).startsWith(x.thing)),
         )
       )
         unread.push(m[0].trim());

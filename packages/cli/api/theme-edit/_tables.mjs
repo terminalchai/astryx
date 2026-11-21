@@ -694,6 +694,20 @@ export const DIALS = wordTable({
     examples: ['set my base neutral', 'set my base none'],
     words: 'base start starting built-in extends foundation',
   },
+  press: {
+    help: "How every part looks while it is pressed, the whole theme at once: each part that draws a press (buttons, toggles, segmented items, tabs, menu, list and tree rows, calendar days, cards you click) paints this wash over its own fill, so the press follows each part's colors in every variant and mode. darker: a black wash. lighter: a white wash. stronger: a wash of the part's own text color, which shows on any fill. none: no press look. A percent (15%) is the default wash at that strength. The default: darker in light mode, lighter in dark mode. A press the theme sets on a part (--state pressed) wins there. Feel: darker feels tactile; stronger feels bold; none feels flat.",
+    values: 'darker|lighter|stronger|none|<percent>',
+    examples: ['set my press darker', 'set my press 15%'],
+    // (No other words: press and hover are states too, "hover #0065ff".)
+    words: '',
+  },
+  hover: {
+    help: "How every part looks under the pointer, the whole theme at once: each part that draws a hover paints this wash over its own fill, so the hover follows each part's colors in every variant and mode. darker: a black wash. lighter: a white wash. stronger: a wash of the part's own text color. none: no hover look. A percent (8%) is the default wash at that strength. The default: darker in light mode, lighter in dark mode. A hover the theme sets on a part (--state hover) wins there. Feel: darker feels responsive; none feels flat.",
+    values: 'darker|lighter|stronger|none|<percent>',
+    examples: ['set my hover darker', 'set my hover 8%'],
+    // (No other words: press and hover are states too, "hover #0065ff".)
+    words: '',
+  },
   mode: {
     help: "Which color modes the theme supports. light-only / dark-only: the colors the theme sets get one value, its mode's shade; settings saved for the other mode stay saved but do not apply (the result names them); the in-app preview starts in that mode with no switch. both (default): colors without --mode apply to both; --mode light|dark sets one side, and the other side keeps the base theme's value.",
     values: 'both|light-only|dark-only',

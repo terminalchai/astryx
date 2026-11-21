@@ -162,6 +162,7 @@ import {
   notGrowingWhens,
   sharedControlHeight,
   controlHeightValue,
+  feelPercent,
 } from './_settings.mjs';
 import {isColorToken} from './_compiler.mjs';
 import {
@@ -6407,6 +6408,32 @@ function checkOne(
     );
   if (DIALS[thing]) {
     s.source = 'dial';
+    if (thing === 'press' || thing === 'hover') {
+      const lower = v.trim().toLowerCase();
+      const ok = DIALS[thing].values.split('|').filter(x => !x.startsWith('<'));
+      // (One wash for the whole theme, each part's own in each mode.)
+      if (s.on || s.mode || s.state || s.when)
+        refuse(
+          E.ERR_THEME_BAD_VALUE,
+          `${thing} sets one wash for every part in both modes; drop the scope. For one part, set its background with --state ${thing === 'press' ? 'pressed' : 'hover'} --on <part>.`,
+          {run: [setLine(slug, thing, lower, {})]},
+        );
+      if (ok.includes(lower) || feelPercent(lower)) {
+        s.value = lower;
+        return s;
+      }
+      const near = closestOf(lower, ok);
+      refuse(
+        E.ERR_THEME_BAD_VALUE,
+        `${thing} takes ${ok.join(', ')} or a percent from 1% to 60%, not "${v}".`,
+        {
+          didYouMean: near,
+          run: near.length
+            ? near.map(x => setLine(slug, thing, x, {}))
+            : [`${HOW} ${thing}`],
+        },
+      );
+    }
     if (['surfaces', 'buttons', 'badges', 'type'].includes(thing)) {
       if (s.on)
         refuse(

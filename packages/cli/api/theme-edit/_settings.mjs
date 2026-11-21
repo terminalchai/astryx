@@ -2837,11 +2837,13 @@ export function valueProblem(s) {
               Number(s.value) <= 32)
           : s.thing === 'vibrancy'
             ? /^\d{1,3}$/.test(s.value) && Number(s.value) <= 100
-            : PALETTE_DIALS.includes(s.thing)
-              ? isColorValue(s.value)
-              : s.thing === 'font'
-                ? s.value.trim() !== ''
-                : words.includes(s.value);
+            : s.thing === 'press' || s.thing === 'hover'
+              ? words.includes(s.value) || feelPercent(s.value)
+              : PALETTE_DIALS.includes(s.thing)
+                ? isColorValue(s.value)
+                : s.thing === 'font'
+                  ? s.value.trim() !== ''
+                  : words.includes(s.value);
     if (!ok || s.value === 'more' || s.value === 'less')
       return `${bad} is not a value ${s.thing} takes (${d.values.replace('|more|less', '')})`;
   }
@@ -6412,6 +6414,64 @@ export function roleReach(ctx, data, base) {
 }
 
 /**
+ * Whether a feel dial's value is a percent it takes (1% to 60%).
+ * @param {string} v
+ */
+export const feelPercent = v => {
+  const n = /^(\d+(?:\.\d+)?)%$/.exec(v)?.[1];
+  return n != null && Number(n) > 0 && Number(n) <= 60;
+};
+
+/** The wash token a feel dial sets: the one Core paints in that moment. */
+const FEEL_WASH = /** @type {const} */ ({
+  press: '--color-overlay-pressed',
+  hover: '--color-overlay-hover',
+});
+
+/**
+ * The wash a feel dial's value paints over a part's own fill, as a
+ * [light, dark] pair: a percent is the base wash's own color, in each mode,
+ * at that strength.
+ * @param {'press' | 'hover'} dial
+ * @param {string} value
+ * @param {{light: Record<string, string>, dark: Record<string, string>}} base
+ * @param {Record<string, string>} defaults Core's token defaults
+ * @returns {[string, string]}
+ */
+export function feelWash(dial, value, base, defaults) {
+  const press = dial === 'press';
+  const pct = /^(\d+(?:\.\d+)?)%$/.exec(value)?.[1];
+  if (pct != null) {
+    const token = FEEL_WASH[dial];
+    /** @param {'light' | 'dark'} m */
+    const half = m => {
+      const ink = parseColor(String(base[m]?.[token] ?? defaults[token] ?? ''));
+      const rgb = ink
+        ? ink.slice(0, 3).join(' ')
+        : m === 'light'
+          ? '0 0 0'
+          : '255 255 255';
+      return `rgb(${rgb} / ${pct}%)`;
+    };
+    return [half('light'), half('dark')];
+  }
+  /** @param {string} css */
+  const both = css => /** @type {[string, string]} */ ([css, css]);
+  switch (value) {
+    case 'darker':
+      return both(`rgb(0 0 0 / ${press ? 12 : 6}%)`);
+    case 'lighter':
+      return both(`rgb(255 255 255 / ${press ? 16 : 8}%)`);
+    case 'stronger':
+      return both(
+        `color-mix(in srgb, currentColor ${press ? 20 : 12}%, transparent)`,
+      );
+    default:
+      return both('transparent');
+  }
+}
+
+/**
  * The settings, as a `defineTheme` object.
  * @param {Ctx} ctx
  * @param {ThemeData} data
@@ -8276,6 +8336,23 @@ export function compileTheme(ctx, data, base) {
                 ? 'ui-monospace, monospace'
                 : f.fallbacks,
           };
+      } else if (s.thing === 'press' || s.thing === 'hover') {
+        // A feel dial is the wash Core paints over each part's own fill in
+        // that moment: one token, so every part's press or hover follows
+        // its own fill in each variant and mode. A part the theme sets that
+        // moment's background on keeps the base wash, so it looks as set.
+        const token = FEEL_WASH[s.thing];
+        putTok(token, feelWash(s.thing, s.value, base, TOKENS));
+        const states = s.thing === 'press' ? ['pressed', 'active'] : ['hover'];
+        const kept = `light-dark(${base.light[token] ?? TOKENS[token]}, ${base.dark[token] ?? TOKENS[token]})`;
+        for (const x of data.settings)
+          if (
+            x.source === 'property' &&
+            states.includes(String(x.state)) &&
+            /^background(-color|-image)?$/.test(kebab(x.thing))
+          )
+            for (const t of partsOf(ctx, x))
+              putComp({...x, mode: undefined}, t, token, kept);
       } else if (s.thing === 'surfaces') {
         /**
          * A surface's variant axis that tells its plain fills (the card,

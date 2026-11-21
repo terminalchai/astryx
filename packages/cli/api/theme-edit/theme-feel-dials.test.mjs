@@ -89,7 +89,7 @@ describe('the press and hover dials', () => {
     expect(feelWash('hover', 'stronger', base, tokens)[0]).toMatch(
       /currentColor 12%/,
     );
-    expect(feelWash('press', 'none', base, tokens)).toEqual([
+    expect(feelWash('hover', 'none', base, tokens)).toEqual([
       'transparent',
       'transparent',
     ]);
@@ -113,6 +113,39 @@ describe('the press and hover dials', () => {
       expect(out).toMatch(
         /\.astryx-button[^{]*\{[^}]*--color-overlay-pressed:\s*light-dark\(/,
       );
+    },
+    T,
+  );
+
+  it(
+    "keep the theme's wash on looks Core paints with it at rest, and on one mode's own pressed fill",
+    async () => {
+      await themeEditNew('fw', {cwd, like: 'neutral'});
+      await themeEditSet('fw', 'hover', 'none', {cwd});
+      await themeEditSet('fw', 'background-color', '#cc0000', {
+        cwd,
+        on: 'button',
+        state: 'pressed',
+        mode: 'dark',
+      });
+      await themeEditSet('fw', 'press', 'lighter', {cwd});
+      const out = css('fw');
+      // (A highlighted row, an open menu's trigger and a toggle that is on
+      // keep their fill.)
+      expect(out).toMatch(
+        /\.astryx-item\[data-highlighted="highlighted"\]\s*\{[^}]*--color-overlay-hover:\s*light-dark\(/,
+      );
+      expect(out).toMatch(
+        /\.astryx-top-nav-menu:is\(\[aria-expanded="true"\]\)\s*\{[^}]*--color-overlay-hover:\s*light-dark\(/,
+      );
+      expect(out).toMatch(
+        /\.astryx-toggle-button\[data-is-pressed="true"\]\s*\{[^}]*--color-overlay-pressed:\s*light-dark\(/,
+      );
+      // (A pressed fill set for dark mode keeps the dark wash only.)
+      const dark = out.match(
+        /\[aria-pressed="true"\]\)\s*\{[^}]*--color-overlay-pressed:\s*([^;]+);/,
+      );
+      expect(dark?.[1]).not.toMatch(/light-dark/);
     },
     T,
   );
@@ -147,6 +180,21 @@ describe('how', () => {
       expect(await writes('fh', '8% tint on hover')).toEqual([
         "set fh hover '8%'",
       ]);
+      expect(await writes('fh', 'darker on click')).toEqual([
+        'set fh press darker',
+      ]);
+      // (A look other than the fill, said with its moment, is that look's;
+      // a musing or a "no" writes nothing.)
+      for (const q of [
+        'borders darker on hover',
+        'the text lighter on press',
+        'maybe darker on press',
+        'no darker on press',
+      ])
+        expect(
+          (await writes('fh', q)).some(c => / (?:press|hover) /.test(c)),
+          q,
+        ).toBe(false);
       // (A design system's feel line, its press half the dial.)
       expect(
         await writes('fh', 'Feel: light gray fill on hover, darker on press.'),

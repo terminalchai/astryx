@@ -695,14 +695,14 @@ export const DIALS = wordTable({
     words: 'base start starting built-in extends foundation',
   },
   press: {
-    help: "How every part looks while it is pressed, the whole theme at once: each part that draws a press (buttons, toggles, segmented items, tabs, menu, list and tree rows, calendar days, cards you click) paints this wash over its own fill, so the press follows each part's colors in every variant and mode. darker: a black wash. lighter: a white wash. stronger: a wash of the part's own text color, which shows on any fill. none: no press look. A percent (15%) is the default wash at that strength. The default: darker in light mode, lighter in dark mode. A press the theme sets on a part (--state pressed) wins there. Feel: darker feels tactile; stronger feels bold; none feels flat.",
-    values: 'darker|lighter|stronger|none|<percent>',
+    help: "How every part looks while it is pressed, the whole theme at once: each part that paints the shared press wash (buttons, segmented items, tabs, menu, list and tree rows, calendar days, cards you click) paints it over its own fill, so the press follows each part's colors in every variant and mode. darker: a black wash. lighter: a white wash. stronger: a wash of the part's own text color, which shows on any fill. A percent from 1% to 60% (15%) is the theme's own wash color at that strength. The default: darker in light mode, lighter in dark mode. A press the theme sets on a part (--state pressed) wins there, and a toggle that is on keeps the theme's wash. Parts that draw their press otherwise keep it. Feel: darker feels tactile; stronger feels bold.",
+    values: 'darker|lighter|stronger|<percent>',
     examples: ['set my press darker', 'set my press 15%'],
     // (No other words: press and hover are states too, "hover #0065ff".)
     words: '',
   },
   hover: {
-    help: "How every part looks under the pointer, the whole theme at once: each part that draws a hover paints this wash over its own fill, so the hover follows each part's colors in every variant and mode. darker: a black wash. lighter: a white wash. stronger: a wash of the part's own text color. none: no hover look. A percent (8%) is the default wash at that strength. The default: darker in light mode, lighter in dark mode. A hover the theme sets on a part (--state hover) wins there. Feel: darker feels responsive; none feels flat.",
+    help: "How every part looks under the pointer, the whole theme at once: each part that paints the shared hover wash paints it over its own fill, so the hover follows each part's colors in every variant and mode. darker: a black wash. lighter: a white wash. stronger: a wash of the part's own text color. none: no hover wash. A percent from 1% to 60% (8%) is the theme's own wash color at that strength. The default: darker in light mode, lighter in dark mode. A hover the theme sets on a part (--state hover) wins there, and a highlighted row or an open menu's trigger keeps the theme's wash. Parts that tint their own hover (a switch, a checkbox, a radio, a slider, a link) keep that tint. Feel: darker feels responsive; none feels flat.",
     values: 'darker|lighter|stronger|none|<percent>',
     examples: ['set my hover darker', 'set my hover 8%'],
     // (No other words: press and hover are states too, "hover #0065ff".)

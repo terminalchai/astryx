@@ -6419,8 +6419,45 @@ export function roleReach(ctx, data, base) {
  */
 export const feelPercent = v => {
   const n = /^(\d+(?:\.\d+)?)%$/.exec(v)?.[1];
-  return n != null && Number(n) > 0 && Number(n) <= 60;
+  return n != null && Number(n) >= 1 && Number(n) <= 60;
 };
+
+/**
+ * The parts, each with the state it is in (null at rest), that Core paints
+ * with a feel dial's wash token for a look other than that moment: a
+ * highlighted row, an open menu's trigger, a toggle that is on, a focused
+ * row.
+ * @param {Ctx} ctx
+ * @param {string} token
+ * @returns {Array<[string, string | null]>}
+ */
+export function restingWashes(ctx, token) {
+  const moment =
+    token === '--color-overlay-hover'
+      ? /:hover|\bhover=/
+      : /:active|\bactive=|data-astryx-press/;
+  /** @type {Array<[RegExp, string]>} */
+  const STATES = [
+    [/\bhighlighted=/, 'highlighted'],
+    [/\baria-expanded=true/, 'expanded'],
+    [/\b(?:isPressed|aria-pressed=true)/, 'isPressed'],
+    [/:focus\b/, 'focus'],
+  ];
+  /** @type {Map<string, [string, string | null]>} */
+  const out = new Map();
+  for (const [t, rec] of Object.entries(ctx.C.MAP ?? {})) {
+    const states = partStates(ctx, t);
+    for (const conds of Object.values(rec.at ?? {}))
+      for (const [cond, v] of Object.entries(conds ?? {})) {
+        if (!String(v).includes(`var(${token}`) || moment.test(cond)) continue;
+        const hit = STATES.find(([re]) => re.test(cond));
+        if (hit && !states.includes(hit[1])) continue;
+        const state = hit?.[1] ?? null;
+        out.set(`${t} ${state}`, [t, state]);
+      }
+  }
+  return [...out.values()];
+}
 
 /** The wash token a feel dial sets: the one Core paints in that moment. */
 const FEEL_WASH = /** @type {const} */ ({
@@ -8338,21 +8375,57 @@ export function compileTheme(ctx, data, base) {
           };
       } else if (s.thing === 'press' || s.thing === 'hover') {
         // A feel dial is the wash Core paints over each part's own fill in
-        // that moment: one token, so every part's press or hover follows
-        // its own fill in each variant and mode. A part the theme sets that
-        // moment's background on keeps the base wash, so it looks as set.
+        // that moment: one token, so each part that paints it follows its
+        // own fill in every variant and mode. The theme's wash before the
+        // dial (its palette's, or the base theme's) stays where a look is
+        // not that moment: a background the theme sets for the moment on a
+        // part, and the looks Core paints with the same token at rest (a
+        // highlighted row, an open menu's trigger, a toggle that is on).
         const token = FEEL_WASH[s.thing];
-        putTok(token, feelWash(s.thing, s.value, base, TOKENS));
-        const states = s.thing === 'press' ? ['pressed', 'active'] : ['hover'];
-        const kept = `light-dark(${base.light[token] ?? TOKENS[token]}, ${base.dark[token] ?? TOKENS[token]})`;
+        /** @param {'light' | 'dark'} m */
+        const before = m =>
+          String(tok[token]?.[m] ?? base[m][token] ?? TOKENS[token]);
+        const was = {light: before('light'), dark: before('dark')};
+        putTok(
+          token,
+          feelWash(
+            s.thing,
+            s.value,
+            {light: {[token]: was.light}, dark: {[token]: was.dark}},
+            TOKENS,
+          ),
+        );
+        /** @param {Setting} x @param {string} t */
+        const keep = (x, t) =>
+          putComp(
+            x,
+            t,
+            token,
+            x.mode
+              ? was[/** @type {'light' | 'dark'} */ (x.mode)]
+              : `light-dark(${was.light}, ${was.dark})`,
+          );
+        const moments = s.thing === 'press' ? ['pressed', 'active'] : ['hover'];
         for (const x of data.settings)
           if (
             x.source === 'property' &&
-            states.includes(String(x.state)) &&
+            String(x.state ?? '')
+              .split('+')
+              .some(st => moments.includes(st)) &&
             /^background(-color|-image)?$/.test(kebab(x.thing))
           )
-            for (const t of partsOf(ctx, x))
-              putComp({...x, mode: undefined}, t, token, kept);
+            for (const t of partsOf(ctx, x)) keep(x, t);
+        for (const [t, state] of restingWashes(ctx, token))
+          keep(
+            /** @type {Setting} */ ({
+              thing: token,
+              value: '',
+              source: 'property',
+              on: t,
+              ...(state ? {state} : {}),
+            }),
+            t,
+          );
       } else if (s.thing === 'surfaces') {
         /**
          * A surface's variant axis that tells its plain fills (the card,

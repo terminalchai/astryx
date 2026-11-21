@@ -6536,10 +6536,6 @@ export function draftAnswer(ctx, env, question) {
     /^\s*(?:below|above|under|over)\s+\d+(?:px|em|rem)\s*$|^\s*(?:on|for) (?:mobile|phones?|tablets?|desktops?|print)\s*$|^\s*when printing\s*$|^\s*(?:(?:in|on) (?:the )?(?:dark|light) mode )?#[0-9a-f]{3,8}(?: in (?:dark|light)(?: mode)?)?\s*$|^\s*(?:leave|keep) (?:the )?(?:dark|light) mode (?:alone|as is|as it is|untouched)\s*$|^\s*(?:only |just )?(?:(?:in|on|for|when|while) )?(?:(?:the )?(?:dark|light) mode|hover(?:ed|ing)?|focus(?:ed)?|press(?:ed)?|click(?:ed)?|selected|checked|disabled)(?: only)?\s*$|^\s*(?:at (?:least|most) |about |around |roughly |maybe )?(?:-?\d*\.?\d+(?:px|rem|em|%|ms|s)?|#[0-9a-f]{3,8})\s*$/i;
   const isAsk = (/** @type {string} */ x) => {
     if (NEUTRAL.test(x)) return true;
-    // ("darker on press", "8% tint on hover": a feel dial's rung, said
-    // with its moment, asks for that look.)
-    const feel = dialRung(x.toLowerCase());
-    if (feel && (feel.dial === 'press' || feel.dial === 'hover')) return true;
     // ("a calm, dark theme": a look said for the theme, its mode, is an
     // ask of its own.)
     if (/\b(?:dark|light)-only (?:theme|look|ui|interface|design)\b/i.test(x))
@@ -6652,6 +6648,10 @@ export function draftAnswer(ctx, env, question) {
       [t0, raw].some(v => CONDITION.test(v) || NOT_ASK.test(v) || VETO.test(v))
     )
       return false;
+    // ("darker on press", "8% tint on hover": a feel dial's rung, said
+    // with its moment, asks for that look.)
+    const feel = dialRung(raw);
+    if (feel && (feel.dial === 'press' || feel.dial === 'hover')) return true;
     // Questions in a script how cannot read word by word keep their ask.
     if (/[^ -~]/.test(t0.replace(/[\u{1F000}-\u{1FFFF}\u2000-\u2BFF]/gu, '')))
       return true;
@@ -13770,8 +13770,8 @@ export function draftAnswer(ctx, env, question) {
             x.when ||
             String(x.thing ?? '').includes(st) ||
             // (A feel dial is that moment's look: "darker on press".)
-            ((x.thing === 'press' || x.thing === 'hover') &&
-              String(st).startsWith(x.thing)),
+            (x.thing === 'press' && /^(?:press|active)/.test(String(st))) ||
+            (x.thing === 'hover' && String(st).startsWith('hover')),
         )
       )
         unread.push(m[0].trim());
@@ -16689,8 +16689,14 @@ export function draftAnswer(ctx, env, question) {
         rung?.dial === 'corners' && c.parts[0]
           ? cornersNamed(c.text, c.parts[0].on, partNames(c.parts[0].on))
           : null;
+      // (A feel dial is a wash over the fill: "borders darker on hover"
+      // and "the text lighter on press" are the border's and the text's.)
+      const feelElsewhere =
+        (rung?.dial === 'press' || rung?.dial === 'hover') &&
+        c.aspects.some(a => !/^(?:background|fill)$/.test(a));
       const r =
-        someCorners && (someCorners.except || someCorners.corners.length < 4)
+        feelElsewhere ||
+        (someCorners && (someCorners.except || someCorners.corners.length < 4))
           ? null
           : rung;
       const scoped = r && (r.dial === 'corners' || r.dial === 'spacing');

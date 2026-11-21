@@ -874,6 +874,26 @@ base draws it; a heading font still gives it the heading font. A plain
 
 Rejected: the heading font after a body font on every base, which moves a two-family base's title.
 
+### DEC-21 — The press and hover dials set the one wash every part paints over its own fill
+
+**Reference:** `spec:AST-050/DEC-21`
+**Decider:** maintainers under `josephfarina`'s delegation, `2026-11-21`
+
+A theme the editor makes sets how every part looks while pressed or hovered
+with one whole-theme setting each, `press` and `hover`. Each sets the wash
+Core paints over a part's own fill in that moment (`--color-overlay-pressed`,
+`--color-overlay-hover`), so each part's press or hover follows its own fill in
+every variant and mode. `darker` is a black wash, `lighter` a white one,
+`stronger` a wash of the part's own text color, `none` no wash, and a percent
+from 1% to 60% is the base theme's wash, in each mode, at that strength. A
+part whose pressed or hover background the theme sets keeps the base theme's
+wash, so it looks as set. Both dials take no `--on`, `--mode`, `--state` or
+`--when`. `how` reads a feel said with its moment ("darker on press", "8% tint
+on hover") as the dial, and "hover #0065ff" said of a part stays that part's
+hover.
+
+Rejected: a pressed fill written on each part and variant, which drifts from the parts' own fills when they change.
+
 ## Open questions
 
 None.

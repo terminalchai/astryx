@@ -79,14 +79,11 @@ const ROWS = [
     {q: 'the command palette should have 8px corners', none: true},
   ],
   [
-    'a name in capitals that no part has is no subject',
-    {q: 'FAB 16px corners', has: ['corners 16px']},
-  ],
-  [
-    'a look said after a name in capitals is written',
+    'a name in capitals that no part has, before a corner size, is named and never the whole theme',
     {
-      q: 'FAB 16px corners, bold text',
-      has: ['corners 16px', '--text-body-weight 700'],
+      q: 'FAB 16px corners',
+      never: /corners|radius/,
+      says: /no part is called "fab"/,
     },
   ],
   [

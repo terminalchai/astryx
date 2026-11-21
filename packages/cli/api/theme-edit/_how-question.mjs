@@ -14744,6 +14744,12 @@ export function draftAnswer(ctx, env, question) {
     const thing =
       unknown.some(w => /[a-z]{2}[^su']s$/.test(w)) ||
       near(unknown.join(' ')) !== '' ||
+      // (A word right before a corner size, "FAB 16px corners": corners
+      // are a thing's on the page, never a brand's or a mood's.)
+      (!label &&
+        new RegExp(
+          String.raw`^${unknown[0]}\s+\d*\.?\d+(?:px|rem|em)?\s+corners?$`,
+        ).test(body)) ||
       // (A label before a part's own look, "fab: #eaddff background": the
       // look is something's on the page, never the theme's.)
       (label != null &&
@@ -15453,13 +15459,28 @@ export function draftAnswer(ctx, env, question) {
     // selectors) and the surfaces' and overlays' (--radius-container:
     // cards, dialogs, popovers, menus), each said by its role.)
     {
+      // ("controls with 12px corners": the role leads the with-list, so
+      // the clause before it holds the role alone; "give overlays 12px
+      // corners": the role after the verb.)
+      const prev = clauses[clauses.indexOf(c) - 1];
+      const ROLE =
+        /^(?:(?:give|make|set|round)\s+)?(?:the\s+|all\s+)?(controls?|elements?|overlays?|surfaces?|containers?)\b/;
+      const ledBy =
+        c.joint === 'with' &&
+        prev &&
+        !prev.parts.length &&
+        !prev.aspects.length &&
+        !prev.lengths.length &&
+        ROLE.test(prev.text.toLowerCase().trim())
+          ? prev
+          : null;
       const role =
         !c.parts.length &&
         c.aspects.length === 1 &&
         c.aspects[0] === 'corners' &&
         c.lengths.length === 1
-          ? /^(?:the\s+|all\s+)?(controls?|elements?|overlays?|surfaces?|containers?)\b/.exec(
-              c.text.toLowerCase(),
+          ? ROLE.exec(
+              (ledBy ? `${ledBy.text} ${c.text}` : c.text).toLowerCase().trim(),
             )?.[1]
           : undefined;
       const token = role
@@ -15468,6 +15489,7 @@ export function draftAnswer(ctx, env, question) {
           : '--radius-container'
         : undefined;
       if (token && Object.hasOwn(TOKENS, token)) {
+        if (ledBy) ledBy.text = '';
         const d = {
           text: `corners on ${role}: ${token} ${c.lengths[0]}, the corner size ${token === '--radius-element' ? 'controls (buttons, inputs, selectors)' : 'surfaces and overlays (cards, dialogs, popovers, menus)'} read`,
           options: [[set(token, c.lengths[0])]],
@@ -22724,30 +22746,6 @@ export function draftAnswer(ctx, env, question) {
             return {
               text: `no rounding anywhere: the corners dial square, ${pills.said}`,
               options: [[set('corners', dial), ...pills.steps]],
-              sequence: true,
-            };
-          // ("8px corners": the containers, a card, a banner, a dialog, a
-          // popover, a sheet, and the chat surfaces are 8px too, not the
-          // base's step above the element radius the dial keeps. A bound,
-          // "at most 8px", holds the dial's radii instead; corners said by
-          // side, "4px top corners", are not the whole radius.)
-          const size = /^(\d*\.?\d+)px$/.exec(dial);
-          if (
-            size &&
-            Number(size[1]) > 0 &&
-            Number(size[1]) < 1000 &&
-            !boundOf(c.text) &&
-            !/\b(?:top|bottom|left|right|start|end|upper|lower)\b/i.test(c.text)
-          )
-            return {
-              text: `corners${where}: the corners dial at ${dial}, and the containers (cards, banners, dialogs, popovers, sheets) and chat surfaces at ${dial} too, as said`,
-              options: [
-                [
-                  set('corners', dial),
-                  set('--radius-container', dial),
-                  set('--radius-chat', dial),
-                ],
-              ],
               sequence: true,
             };
           return {

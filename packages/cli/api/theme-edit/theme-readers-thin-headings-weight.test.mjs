@@ -107,8 +107,6 @@ describe('wild wrong writes', () => {
       `set ${t} --color-background-body '#f9fafb' --mode light`,
       `set ${t} --color-text-primary '#111827' --mode light`,
       `set ${t} corners 6px`,
-      `set ${t} --radius-container 6px`,
-      `set ${t} --radius-chat 6px`,
     ]);
     await follow(lines);
   }, 240_000);

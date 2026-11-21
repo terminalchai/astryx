@@ -16824,8 +16824,12 @@ export function radiusAt(base, value, token) {
   // one less round, and a size just under 1000px meets pill smoothly.
   if (token === '--radius-container') {
     const atPill = Math.max(24, 1.5 * roundPx * ratio(token, 1.25));
+    // ("corners 8px": a size said is the containers' size too, a card's, a
+    // dialog's, never the base's step above it; a rung keeps the base's
+    // proportions.)
+    const sized = /^\d*\.?\d+(?:px|rem)$/.test(String(value).trim());
     return Math.round(
-      pill ? atPill : Math.min(atPill, px * ratio(token, 1.25)),
+      pill ? atPill : Math.min(atPill, sized ? px : px * ratio(token, 1.25)),
     );
   }
   if (token === '--radius-page') {

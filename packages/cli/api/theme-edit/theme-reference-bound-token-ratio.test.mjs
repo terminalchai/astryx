@@ -141,7 +141,6 @@ describe('dials and tokens', () => {
     const rs = await how('make corners never more than 8px');
     expect(writes(rs)).toEqual([
       'set ne corners 8px',
-      'set ne --radius-container 8px',
       'set ne --radius-page 8px',
       "set ne --radius-chat 'min(calc(var(--radius-container) * 28 / 12), 8px)'",
     ]);

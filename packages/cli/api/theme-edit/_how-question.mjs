@@ -22726,6 +22726,30 @@ export function draftAnswer(ctx, env, question) {
               options: [[set('corners', dial), ...pills.steps]],
               sequence: true,
             };
+          // ("8px corners": the containers, a card, a banner, a dialog, a
+          // popover, a sheet, and the chat surfaces are 8px too, not the
+          // base's step above the element radius the dial keeps. A bound,
+          // "at most 8px", holds the dial's radii instead; corners said by
+          // side, "4px top corners", are not the whole radius.)
+          const size = /^(\d*\.?\d+)px$/.exec(dial);
+          if (
+            size &&
+            Number(size[1]) > 0 &&
+            Number(size[1]) < 1000 &&
+            !boundOf(c.text) &&
+            !/\b(?:top|bottom|left|right|start|end|upper|lower)\b/i.test(c.text)
+          )
+            return {
+              text: `corners${where}: the corners dial at ${dial}, and the containers (cards, banners, dialogs, popovers, sheets) and chat surfaces at ${dial} too, as said`,
+              options: [
+                [
+                  set('corners', dial),
+                  set('--radius-container', dial),
+                  set('--radius-chat', dial),
+                ],
+              ],
+              sequence: true,
+            };
           return {
             text: `corners${where}: the corners dial (sets the corner tokens together)${dial !== value ? `, ${value} as ${dial}` : ''}`,
             options: [[set('corners', dial)]],

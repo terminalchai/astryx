@@ -4712,7 +4712,14 @@ export function draftAnswer(ctx, env, question) {
           partIn(before) &&
           // (The ask before is a change, with its own verb; a complaint
           // about a look, "the border on cards is ugly", is no ask here.)
-          /\b(?:make|set|use|give|add|change|turn)\b/i.test(before)
+          /\b(?:make|set|use|give|add|change|turn)\b/i.test(before) &&
+          // (A question said before the ask keeps the earlier reading.)
+          !/\?/.test(
+            question.slice(
+              0,
+              question.toLowerCase().indexOf(said.toLowerCase()),
+            ),
+          )
         ) {
           partlessLooks.push(word);
           return `${lead}${before}`;

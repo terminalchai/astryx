@@ -1027,6 +1027,19 @@ describe('an undo that names a mode, on a theme that sets the thing', () => {
     );
     expect(red.writes.some(w => / accent '#dc2626'$/.test(w))).toBe(true);
     expect(red.text).toMatch(/not read here yet/);
+    // (A change said for the undo's own mode is taken back by it.)
+    const same = await lines(
+      'mo',
+      'make the accent red in dark mode. undo the dark mode accent change',
+    );
+    expect(same.writes).toEqual([]);
+    expect(same.text).toMatch(/taken back by its undo/);
+    // (A one-mode theme that sets no accent says so.)
+    await themeEditNew('mn', {cwd, like: 'neutral'});
+    await themeEditSet('mn', 'mode', 'dark-only', {cwd});
+    const none = await lines('mn', 'reset the dark mode accent');
+    expect(none.writes).toEqual([]);
+    expect(none.text).toMatch(/sets nothing for accent in dark mode/);
   }, 300_000);
 
   it('on its own, takes back only a setting of that mode', async test => {

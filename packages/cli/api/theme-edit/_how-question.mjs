@@ -4700,13 +4700,30 @@ export function draftAnswer(ctx, env, question) {
       // ugly", "the shadow on the cards is too strong". Any other word, a
       // side, a state, a variant, a mode or a second part, keeps the
       // earlier reading.)
-      // (A variant of the part said with the look, "the muted card border",
-      // takes it away on that variant only.)
+      // (A variant of the part said just before its name, "the muted card
+      // border", takes it away on that variant only. A judging word that is
+      // also a value, "too strong" on a divider, names no variant.)
       const besidePart = own.toLowerCase().replace(longest[0].trim(), ' ');
-      const variant = Object.values(ctx.C.variantValues(best.on) ?? {})
-        .flat()
-        .map(v => String(v).toLowerCase())
-        .find(v => new RegExp(`\\b${v}\\b`).test(besidePart));
+      const before = String(
+        own
+          .slice(0, own.toLowerCase().indexOf(longest[0].trim()))
+          .trim()
+          .split(/\s+/)
+          .pop() ?? '',
+      ).toLowerCase();
+      const axes = ctx.C.variantValues(best.on) ?? {};
+      const variant = /** @type {any} */ ((axes).variant ?? [])
+        .map((/** @type {unknown} */ v) => String(v).toLowerCase())
+        .find((/** @type {string} */ v) => v === before);
+      // (A value of another axis, "the high card shadow", keeps the earlier
+      // reading.)
+      if (
+        !variant &&
+        Object.values(axes)
+          .flat()
+          .some(v => String(v).toLowerCase() === before)
+      )
+        return m;
       const others = besidePart
         .replace(variant ? new RegExp(`\\b${variant}\\b`) : /$^/, ' ')
         .replace(new RegExp(`\\b${look}\\b`, 'i'), ' ')
@@ -4721,8 +4738,11 @@ export function draftAnswer(ctx, env, question) {
         return m;
       // (A "!" or "?" before it ends the ask before, as a full stop does.)
       const stop = String(lead).replace(/[!?]/, '.');
-      const which = variant ? `${variant} ` : '';
-      return `${stop}no ${word} on ${which}${part}`;
+      // ("gray cards: no border": the form every later reader keeps the
+      // variant in.)
+      return variant
+        ? `${stop}${variant} ${part}: no ${word}`
+        : `${stop}no ${word} on ${part}`;
     },
   );
   // "darker but not darker than #1e3a8a": a color bound is a limit every

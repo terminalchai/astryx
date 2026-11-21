@@ -448,8 +448,12 @@ describe('a look taken away by a pronoun on one variant', () => {
           /border none --on badge --when variant:error\b/,
         ],
         [
-          'the secondary button background is ugly, hide it',
-          /background-color transparent --on button --when variant:secondary\b/,
+          'the gray card border is ugly, hide it',
+          /border none --on card --when variant:gray\b/,
+        ],
+        [
+          'the green badge border is ugly, hide it',
+          /border none --on badge --when variant:green\b/,
         ],
         [
           'the border on the ghost buttons is ugly, hide it',
@@ -462,6 +466,23 @@ describe('a look taken away by a pronoun on one variant', () => {
           /(?:none|transparent) --on (?:card|badge|button)$/m,
         );
       }
+    },
+    T,
+  );
+  it(
+    'reads a value only just before the part, and only of its variants',
+    async () => {
+      // ("too strong" on a divider names no variant: every divider.)
+      const divider = (
+        first(await answer('the divider border is too strong, hide it')) ?? []
+      ).join('\n');
+      expect(divider).not.toMatch(/--when variant:strong/);
+      // (A value of another axis keeps the earlier reading.)
+      const high = (
+        first(await answer('the high card shadow is too strong, remove it')) ??
+        []
+      ).join('\n');
+      expect(high).not.toMatch(/box-shadow none --on card$/m);
     },
     T,
   );

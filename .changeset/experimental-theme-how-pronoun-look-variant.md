@@ -2,6 +2,6 @@
 '@astryxdesign/cli': patch
 ---
 
-[experimental] `astryx experimental theme editor how`: a look said for one variant of a part and then taken away by a pronoun is taken away on that variant only ("the muted card border is ugly, hide it" writes no border on muted cards), never written back and never taken away from every variant.
+[experimental] `astryx experimental theme editor how`: a look said on its own for one variant of a part, the value said just before the part's name ("the muted card border is ugly, hide it", "the gray card border …"), and then taken away by a pronoun is taken away on that variant only, never written back and never taken away from every variant. A value of another axis ("the high card shadow"), or a judging word that is also a value ("the divider border is too strong"), names no variant.
 
 @josephfarina

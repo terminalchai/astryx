@@ -2087,10 +2087,14 @@ export async function addSharedThemeToApp(source, options) {
         changed.length &&
         working &&
         previous?.editor &&
-        // (Every working file the add copied is there and unchanged: a
-        // deleted one is a change too.)
+        // (Every working file the add copied is listed, there and
+        // unchanged: a deleted one is a change too.)
+        Object.keys(working).length > 0 &&
         Object.keys(working).length ===
           Object.keys(previous.editor.files).length &&
+        Object.keys(working).every(file =>
+          fs.existsSync(path.join(editorDir, file)),
+        ) &&
         !changedSharedFiles(editorDir, {files: working}).length
       ) {
         await import('../theme-edit/_adapter.mjs');

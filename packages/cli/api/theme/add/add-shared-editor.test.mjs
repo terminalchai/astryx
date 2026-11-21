@@ -174,7 +174,9 @@ it('a re-add replaces the copy files the editor rebuilt from unchanged working f
 
 it('a re-add replaces nothing while a working file is gone, or the build is not the one made from the working files now', async () => {
   /** A fresh app with the shared theme added and rebuilt by the editor. */
-  const setUp = async () => {
+  const setUp = async (
+    /** @type {(shared: string) => void} */ more = () => {},
+  ) => {
     const app = makeLinkedFixture(
       'astryx-theme-add-editor-gate-',
       FIXTURE_PACKAGES,
@@ -186,6 +188,7 @@ it('a re-add replaces nothing while a working file is gone, or the build is not 
       path.join(shared, 'app-copy/sunset.css'),
       '/* shared */\n',
     );
+    more(shared);
     await themeAdd(shared, {cwd: app});
     return {app, shared};
   };
@@ -202,6 +205,17 @@ it('a re-add replaces nothing while a working file is gone, or the build is not 
     /sunset\.css.*changed since/s,
   );
   done(a);
+  // (Nor a deleted palette file the add copied, with no color dial set.)
+  const p = await setUp(shared =>
+    fs.writeFileSync(path.join(shared, 'editor/palette.config.json'), '{}\n'),
+  );
+  await themeEditShow('sunset', {cwd: p.app});
+  fs.rmSync(path.join(p.app, 'themes/sunset/palette.config.json'));
+  await themeRemove('sunset', {cwd: p.app});
+  await expect(themeAdd(p.shared, {cwd: p.app})).rejects.toThrow(
+    /changed since/,
+  );
+  done(p);
   // (Settings put back after an editor change, without a build: the copy
   // is the build of the other settings.)
   const b = await setUp();

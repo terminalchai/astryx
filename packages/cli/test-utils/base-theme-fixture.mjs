@@ -25,8 +25,10 @@ export const FIXTURE_PACKAGES = [
  * Writes `@astryxdesign/theme-<like>` beside the fixture `dir`.
  * @param {string} dir
  * @param {string} [like]
+ * @param {Record<string, object>} [components] more component rules the
+ *   base theme draws ({badge: {base: {borderRadius: '9999px'}}})
  */
-export function writeFixtureBaseTheme(dir, like = 'neutral') {
+export function writeFixtureBaseTheme(dir, like = 'neutral', components = {}) {
   const pkgDir = path.join(
     path.dirname(dir),
     'node_modules',
@@ -75,6 +77,7 @@ export function writeFixtureBaseTheme(dir, like = 'neutral') {
       heading: Object.fromEntries(
         [1, 2, 3, 4, 5, 6].map(n => [`level:${n}`, level(n)]),
       ),
+      ...components,
     },
   };
   fs.writeFileSync(

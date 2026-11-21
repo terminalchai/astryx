@@ -412,7 +412,7 @@ export const butterTheme = defineTheme({
     // Typography override
     '--text-supporting-size': '0.75rem', // 12px at the default root size
 
-    // Element sizes — slightly taller defaults so the new input padding
+    // Element sizes — slightly taller defaults, so the text fields' padding
     // (--spacing-2 block) has room to breathe.
     '--size-element-sm': '32px',
     '--size-element-md': '40px',
@@ -612,6 +612,8 @@ export const butterTheme = defineTheme({
         height: '30px',
         paddingBlock: '0',
         paddingInline: 'var(--spacing-3)',
+        // Badges take the element corners, as buttons and inputs do.
+        borderRadius: 'var(--radius-element)',
       },
       // Vivid semantic badges — pinned to the reviewed semantic stops.
       // Info uses Butter’s lighter accent stop rather than its signature stop.
@@ -809,7 +811,8 @@ export const butterTheme = defineTheme({
       },
     },
 
-    // Inputs — softer border than default, more vertical breathing room.
+    // Inputs — softer border than default; the text fields get more
+    // vertical breathing room.
     // Status modifiers also remap the semantic tokens locally so the
     // status icon + border read as the same vivid hue as the banner
     // (icons inherit from --color-{success,warning,error}).
@@ -854,8 +857,8 @@ export const butterTheme = defineTheme({
       ...INPUT_STATUS_VARS,
     },
     selector: {
+      // Inline padding only. Core sets the block padding that keeps the control at its size's height.
       base: {
-        paddingBlock: 'var(--spacing-2)',
         paddingInline: 'var(--spacing-3)',
         borderColor: 'var(--color-border)',
       },
@@ -863,8 +866,8 @@ export const butterTheme = defineTheme({
       'variant:secondary': SECONDARY_SELECTOR,
     },
     'multi-selector': {
+      // Inline padding only. Core sets the block padding that keeps the control at its size's height.
       base: {
-        paddingBlock: 'var(--spacing-2)',
         paddingInline: 'var(--spacing-3)',
         borderColor: 'var(--color-border)',
       },
@@ -873,16 +876,16 @@ export const butterTheme = defineTheme({
     },
     'complex-selector': {'variant:secondary': SECONDARY_COMPLEX_SELECTOR},
     typeahead: {
+      // Inline padding only. Core sets the block padding that keeps the control at its size's height.
       base: {
-        paddingBlock: 'var(--spacing-2)',
         paddingInline: 'var(--spacing-3)',
         borderColor: 'var(--color-border)',
       },
       ...INPUT_STATUS_VARS,
     },
     tokenizer: {
+      // Inline padding only. Core sets the block padding that keeps the control at its size's height.
       base: {
-        paddingBlock: 'var(--spacing-2)',
         paddingInline: 'var(--spacing-3)',
         borderColor: 'var(--color-border)',
       },

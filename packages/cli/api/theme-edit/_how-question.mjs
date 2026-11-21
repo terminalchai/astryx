@@ -12411,18 +12411,6 @@ export function draftAnswer(ctx, env, question) {
     c?.mode && new RegExp(`\\b${c.mode}\\b`, 'i').test(c.text ?? '')
       ? /** @type {string} */ (c.mode)
       : null;
-  /** A one-mode theme's only mode, which a setting or change with no mode is. */
-  const ownMode = modal
-    ? null
-    : env.data.mode === 'dark-only'
-      ? 'dark'
-      : 'light';
-  /**
-   * Whether a setting or change of mode `m` is of the mode an undo names.
-   * @param {string | null | undefined} m
-   * @param {string} said
-   */
-  const ofSaidMode = (m, said) => m === said || (!m && said === ownMode);
   /**
    * The mode a page color is for: the mode said, else, on a theme with
    * both modes, a clearly light color's light mode and a clearly dark
@@ -19553,9 +19541,16 @@ export function draftAnswer(ctx, env, question) {
     // ("undo the light mode accent change": a setting of that mode only. A
     // setting saved for both modes has no light half to take back alone.)
     const mode = saidMode(c);
-    const ofMode = mode
-      ? matches.filter(st => ofSaidMode(st.mode, mode))
-      : matches;
+    // (A theme with one mode keeps settings for either mode, and which of
+    // them its build writes for the other mode's regions, a toast or a
+    // lightbox, differs by setting: an undo that names a mode is not read
+    // there yet.)
+    if (mode && !modal)
+      return {
+        text: `${env.slug} shows ${env.data.mode === 'dark-only' ? 'dark' : 'light'} mode only, so an undo that names a mode is not read here yet; an undo that names no mode takes back what ${env.slug} sets for ${what}${on ? ` on ${on}` : ''}`,
+        options: [],
+      };
+    const ofMode = mode ? matches.filter(st => st.mode === mode) : matches;
     const bothModes = matches.filter(st => !st.mode);
     if (mode && !ofMode.length && bothModes.length)
       return {
@@ -19572,13 +19567,7 @@ export function draftAnswer(ctx, env, question) {
         unmet: `${what}${on ? ` on ${on}` : ''}`,
       };
     return {
-      text: `take back what ${env.slug} sets for ${what}${on ? ` on ${on}` : ''}: undo restores the base value${
-        // (A one-mode theme's setting saved with no mode is built for the
-        // other mode's regions too.)
-        mode && !modal && ofMode.some(st => !st.mode)
-          ? ` (it is saved for both modes, so the ${mode === 'dark' ? 'light' : 'dark'} mode that a toast or a lightbox shows goes back to the base too)`
-          : ''
-      }`,
+      text: `take back what ${env.slug} sets for ${what}${on ? ` on ${on}` : ''}: undo restores the base value`,
       options: [
         ofMode.map(
           st =>
@@ -29376,7 +29365,7 @@ export function draftAnswer(ctx, env, question) {
           return false;
         if (undoAt >= 0 && clauses.indexOf(c) >= undoAt) return false;
         // (An undo that names a mode takes back a change of that mode only.)
-        if (!anyMode && undoMode && !ofSaidMode(c.mode, undoMode)) return false;
+        if (!anyMode && undoMode && c.mode !== undoMode) return false;
         // (Of the part the undo names; with no part, of the whole theme.)
         const onPart = part
           ? c.parts?.some(
@@ -29451,8 +29440,7 @@ export function draftAnswer(ctx, env, question) {
         );
       });
     if (otherMode.length && !saved) {
-      const saidFor =
-        /** @type {any} */ (draftClause.get(otherMode[0]))?.mode ?? ownMode;
+      const saidFor = /** @type {any} */ (draftClause.get(otherMode[0]))?.mode;
       unmet.text = `the undo names ${undoMode} mode, but the change said earlier in this ask is for ${saidFor ? `${saidFor} mode` : 'both modes'}, so nothing is taken back and it stays written`;
       const uc0 = /** @type {any} */ (draftClause.get(unmet));
       if (uc0) answeredByUndo.add(uc0);

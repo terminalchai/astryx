@@ -4712,7 +4712,18 @@ export function draftAnswer(ctx, env, question) {
           .pop() ?? '',
       ).toLowerCase();
       const axes = ctx.C.variantValues(best.on) ?? {};
-      const variant = /** @type {any} */ ((axes).variant ?? [])
+      // (Only a part whose own name is one word, "card", "badge", "button",
+      // keeps a variant said before it through the later readers; a part
+      // named in several words, "clickable card", keeps the earlier
+      // reading.)
+      if (
+        String(best.on).includes('-') &&
+        Object.values(axes)
+          .flat()
+          .some(v => String(v).toLowerCase() === before)
+      )
+        return m;
+      const variant = /** @type {any} */ (axes.variant ?? [])
         .map((/** @type {unknown} */ v) => String(v).toLowerCase())
         .find((/** @type {string} */ v) => v === before);
       // (A value of another axis, "the high card shadow", keeps the earlier

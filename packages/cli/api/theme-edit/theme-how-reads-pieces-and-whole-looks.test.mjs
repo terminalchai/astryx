@@ -483,6 +483,13 @@ describe('a look taken away by a pronoun on one variant', () => {
         []
       ).join('\n');
       expect(high).not.toMatch(/box-shadow none --on card$/m);
+      // (A part named in several words keeps the earlier reading.)
+      const clickable = (
+        first(
+          await answer('the muted clickable card border is ugly, hide it'),
+        ) ?? []
+      ).join('\n');
+      expect(clickable).not.toMatch(/border none --on clickable-card$/m);
     },
     T,
   );

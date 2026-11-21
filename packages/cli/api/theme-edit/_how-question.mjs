@@ -4665,7 +4665,11 @@ export function draftAnswer(ctx, env, question) {
   // the pronoun.)
   question = String(question).replace(
     /(^|[,;.!?\n]\s*)([^,;.!?\n]*?\b(?:borders?|shadows?|outlines?|underlines?|backgrounds?|gradients?)\b(?![\s-]*(?:radius|radii|width|colou?r|style|image|spacing)\b)[^,;.!?\n]*)[,;.]\s*(?:(?:so|and|then|please|just)\s+)*(?:hide|remove|drop|lose|get\s+rid\s+of)\s+(?:it|them)\b\s*[.!]?$/i,
-    (m, lead, said) => {
+    (
+      /** @type {string} */ m,
+      /** @type {string} */ lead,
+      /** @type {string} */ said,
+    ) => {
       // ("it" is the nearest look said before it.)
       const looks = [
         ...said.matchAll(
@@ -4683,13 +4687,15 @@ export function draftAnswer(ctx, env, question) {
         /^(?:s|the|a|an|my|our|its|their|this|that|these|those|on|of|in|around|is|are|was|were|looks?|seems?|feels?|has|have|too|so|very|really|way|kind|bit|little|much|just|quite|ugly|strong|heavy|thick|harsh|loud|busy|distracting|weird|bad|wrong|off|hard|noisy|messy|annoying|i|hate|dislike|don|t|like|it|do|not)$/;
       // ("the card border is ugly and thick, hide it": words joined after
       // the look that only judge it are the look's own, never an ask.)
-      const own = said.replace(/\s+\b(?:and|but)\s+([a-z' ]+)$/i, (x, words) =>
-        String(words)
-          .split(/[^a-z]+/)
-          .filter(Boolean)
-          .every(w => JUDGING.test(w))
-          ? ` ${words}`
-          : x,
+      const own = said.replace(
+        /\s+\b(?:and|but)\s+([a-z' ]+)$/i,
+        (/** @type {string} */ x, /** @type {string} */ words) =>
+          words
+            .split(/[^a-z]+/)
+            .filter(Boolean)
+            .every(w => JUDGING.test(w))
+            ? ` ${words}`
+            : x,
       );
       if (/\b(?:and|but|then)\b/i.test(own)) return m;
       // (The one part the look's own words name, by its longest match.)

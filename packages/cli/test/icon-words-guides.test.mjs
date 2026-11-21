@@ -26,6 +26,13 @@ const ICON_GUIDES = new Set([
   'template-icons.doc.mjs',
 ]);
 
+// Theme guides that name Core's icon names.
+const THEME_GUIDES = new Set([
+  'theme.doc.mjs',
+  'theme.doc.dense.mjs',
+  'theme.doc.zh.mjs',
+]);
+
 const RETIRED_EVERYWHERE = [
   {word: 'icon registry', pattern: /\bicon[- ]registr/i},
   {word: 'icon pack', pattern: /\bicon[- ]packs?\b/i},
@@ -88,6 +95,7 @@ describe('icon words in guides', () => {
     const found = [];
     for (const file of builtinGuideFiles()) {
       const base = path.basename(file);
+      if (!ICON_GUIDES.has(base) && !THEME_GUIDES.has(base)) continue;
       const rules = ICON_GUIDES.has(base)
         ? [...RETIRED_EVERYWHERE, ...RETIRED_IN_ICON_GUIDES]
         : RETIRED_EVERYWHERE;

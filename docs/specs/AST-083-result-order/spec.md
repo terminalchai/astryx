@@ -139,9 +139,9 @@ owns response fields and compatibility.
   exact or folded); word cover (the name carries every word of the argument).
   For `astryx docs`, a Core component or hook also matches at segment when
   its name, folded (a hook's with its `use`), is the argument's last path
-  segment, folded or with each of its words singular; none matches this way
-  when a non-experimental docs route or topic name, folded or with each of its
-  words singular, is one of those names.
+  segment, folded, with each of its words singular, or with a final `s` or
+  `es` dropped; none matches this way when a non-experimental docs route or
+  topic name, read the same ways, is one of those names.
   When the argument matches an entry another of the four commands reads at one
   of the first three tiers, the command that reads that entry, by its full id
   (`astryx hook useHotkeys`), joins the list. When no entry matches at those
@@ -162,7 +162,8 @@ owns response fields and compatibility.
   over a docs topic; among docs routes, the route with the fewest segments
   wins, then the first in tree order. That command goes right after the last
   suggestion that matches at its tier or a better one, so it goes first when
-  none does; a suggested component whose doc's keywords or search card's
+  none does, except that for an unknown docs route it never goes ahead of the
+  child that `spec:AST-046` FR6 keeps first; a suggested component whose doc's keywords or search card's
   synonyms hold the argument (in any case, without spaces and hyphens) matches
   at folded. The list never grows: the last suggestion drops, and a command
   that would come last is left out. That command is the only suggestion when

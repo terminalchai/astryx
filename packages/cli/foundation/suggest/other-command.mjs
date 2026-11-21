@@ -214,16 +214,20 @@ function bestMatch(command, names, typed, tail = []) {
 }
 
 /**
- * The folded names a typed name's last path segment may mean: as typed, and
- * with its words singular (`components/Tabs` may mean Tab).
+ * The folded names a typed name's last path segment may mean: as typed, with
+ * its words singular, and with a final `s` or `es` dropped
+ * (`components/Tabs` may mean Tab, `widgets/Switches` Switch).
  * @param {string} typed
  * @returns {string[]}
  */
 export function tailForms(typed) {
-  const last = typed.slice(typed.lastIndexOf('/') + 1);
-  return [...new Set([foldEntryName(last), nameWords(last).join('')])].filter(
-    Boolean,
-  );
+  const folded = foldEntryName(typed.slice(typed.lastIndexOf('/') + 1));
+  const forms = [folded, nameWords(folded).join('')];
+  if (folded.endsWith('s') && !folded.endsWith('ss')) {
+    forms.push(folded.slice(0, -1));
+  }
+  if (folded.endsWith('es')) forms.push(folded.slice(0, -2));
+  return [...new Set(forms)].filter(Boolean);
 }
 
 /**

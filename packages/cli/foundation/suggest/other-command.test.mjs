@@ -714,6 +714,11 @@ describe('tailForms', () => {
       'zorbletcards',
       'zorbletcard',
     ]);
+    expect(tailForms('widgets/Glimmer-Boxes')).toEqual([
+      'glimmerboxes',
+      'glimmerboxe',
+      'glimmerbox',
+    ]);
     expect(tailForms('Zorblet')).toEqual(['zorblet']);
     expect(tailForms('widgets/')).toEqual([]);
   });

@@ -281,6 +281,10 @@ describe('docs() for a name another command reads', () => {
         ['Buttons', 'astryx component Button'],
         // Only experimental docs are named `table`; they never win.
         ['widgets/Tables', 'astryx component Table'],
+        // Plurals that add `es`, and words that end in `s` before a plural.
+        ['widgets/Switches', 'astryx component Switch'],
+        ['widgets/StatusDots', 'astryx component StatusDot'],
+        ['widgets/FieldStatuses', 'astryx component FieldStatus'],
         // A Core hook not named `use…` matches by its full name too.
         ['widgets/createSwipe', 'astryx hook createSwipe'],
         ['widgets/use-collapsible', 'astryx hook useCollapsible'],

@@ -6425,8 +6425,8 @@ export const feelPercent = v => {
 /**
  * The parts, each with the state it is in (null at rest), that Core paints
  * with a feel dial's wash token for a look other than that moment: a
- * highlighted row, an open menu's trigger, a toggle that is on, a focused
- * row.
+ * highlighted row, an open menu's trigger, a toggle that is on. (A row's
+ * focus is its hover too, under a mouse: it follows the dial.)
  * @param {Ctx} ctx
  * @param {string} token
  * @returns {Array<[string, string | null]>}
@@ -6441,7 +6441,6 @@ export function restingWashes(ctx, token) {
     [/\bhighlighted=/, 'highlighted'],
     [/\baria-expanded=true/, 'expanded'],
     [/\b(?:isPressed|aria-pressed=true)/, 'isPressed'],
-    [/:focus\b/, 'focus'],
   ];
   /** @type {Map<string, [string, string | null]>} */
   const out = new Map();
@@ -6449,7 +6448,12 @@ export function restingWashes(ctx, token) {
     const states = partStates(ctx, t);
     for (const conds of Object.values(rec.at ?? {}))
       for (const [cond, v] of Object.entries(conds ?? {})) {
-        if (!String(v).includes(`var(${token}`) || moment.test(cond)) continue;
+        if (
+          !String(v).includes(`var(${token}`) ||
+          moment.test(cond) ||
+          /:focus\b/.test(cond)
+        )
+          continue;
         const hit = STATES.find(([re]) => re.test(cond));
         if (hit && !states.includes(hit[1])) continue;
         const state = hit?.[1] ?? null;
@@ -8382,9 +8386,33 @@ export function compileTheme(ctx, data, base) {
         // part, and the looks Core paints with the same token at rest (a
         // highlighted row, an open menu's trigger, a toggle that is on).
         const token = FEEL_WASH[s.thing];
+        // (An exact wash the theme saves wins over the dial, as every exact
+        // token does: it is the wash those looks keep.)
+        /** @param {'light' | 'dark'} m */
+        const exact = m => {
+          let v;
+          for (const x of data.settings)
+            if (
+              x.source === 'token' &&
+              x.thing === token &&
+              !x.on &&
+              !x.when &&
+              !x.state &&
+              (!x.mode || x.mode === m)
+            )
+              v = String(x.value);
+          return v;
+        };
         /** @param {'light' | 'dark'} m */
         const before = m =>
+          exact(m) ??
           String(tok[token]?.[m] ?? base[m][token] ?? TOKENS[token]);
+        // (A part that saves the wash itself keeps its own.)
+        const ownWash = new Set(
+          data.settings
+            .filter(x => x.source === 'token' && x.thing === token && x.on)
+            .flatMap(x => partsOf(ctx, x)),
+        );
         const was = {light: before('light'), dark: before('dark')};
         putTok(
           token,
@@ -8397,6 +8425,7 @@ export function compileTheme(ctx, data, base) {
         );
         /** @param {Setting} x @param {string} t */
         const keep = (x, t) =>
+          ownWash.has(t) ||
           putComp(
             x,
             t,

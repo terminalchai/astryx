@@ -151,6 +151,19 @@ describe('the press and hover dials', () => {
   );
 
   it(
+    'keep an exact wash the theme saves, where they keep a wash',
+    async () => {
+      await themeEditNew('fx', {cwd, like: 'neutral'});
+      await themeEditSet('fx', '--color-overlay-pressed', '#22222233', {cwd});
+      await themeEditSet('fx', 'press', 'lighter', {cwd});
+      expect(css('fx')).toMatch(
+        /\.astryx-toggle-button\[data-is-pressed="true"\]\s*\{[^}]*--color-overlay-pressed:\s*light-dark\(#22222233, #22222233\)/i,
+      );
+    },
+    T,
+  );
+
+  it(
     'refuse a scope and a value they do not take',
     async () => {
       await themeEditNew('fr', {cwd, like: 'neutral'});

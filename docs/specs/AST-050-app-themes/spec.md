@@ -887,9 +887,11 @@ every variant and mode. `darker` is a black wash, `lighter` a white one,
 `stronger` a wash of the part's own text color, and a percent from 1% to 60%
 is the theme's own wash color at that strength. `hover` also takes `none`;
 `press` always keeps a look. The looks Core paints with the same token at
-rest keep the theme's wash before the dial: a highlighted or focused row, an
-open menu's trigger, a toggle that is on. So does a part whose pressed or
-hover background the theme sets, in the mode it is set for. Parts that tint
+rest keep the theme's wash before the dial, an exact wash the theme saves
+included: a highlighted option, an open menu's trigger, a toggle that is on.
+A menu row's hover is its focus, which follows the dial. A part whose pressed
+or hover background the theme sets keeps the theme's wash in the mode it is
+set for, and a part that saves the wash itself keeps its own. Parts that tint
 their own hover (a switch, a checkbox, a radio, a slider, a link) keep that
 tint. Both dials take no `--on`, `--mode`, `--state` or `--when`. `how` reads
 a feel said with its moment ("darker on press", "darker on click", "8% tint

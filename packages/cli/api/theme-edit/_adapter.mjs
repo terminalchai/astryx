@@ -2161,6 +2161,7 @@ async function lookOf(ctx, root, file, built) {
     pairs: ctx.parts.pairs,
     accepted,
     unloadedFonts: collectUnloadedFonts(theme),
+    fontPackage: fontsourcePackageOf,
     map: ctx.C.MAP,
     contrast: ctx.C.contrast,
     // (Core's rule reads its colors as drawn: each one it reads resolved.)
@@ -2183,6 +2184,8 @@ async function lookOf(ctx, root, file, built) {
           themed: app.elements.length > 0,
           pinned: app.pinned,
           painted: app.painted,
+          fonts: app.fonts,
+          entry: app.entry ? path.relative(root, app.entry) : null,
         }
       : null,
   };

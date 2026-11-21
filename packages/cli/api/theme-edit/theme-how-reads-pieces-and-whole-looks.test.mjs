@@ -463,6 +463,29 @@ describe('a look taken away by a pronoun with no part of its own', () => {
     },
     T,
   );
+
+  it(
+    'leaves a complaint before it, and a question before the ask, as they read',
+    async () => {
+      const complaint = (
+        first(
+          await answer(
+            'the border on cards is ugly and the shadow is heavy, remove it',
+          ),
+        ) ?? []
+      ).join('\n');
+      expect(complaint).not.toMatch(/border '1px/);
+      const asked = (
+        first(
+          await answer(
+            'how rounded are cards? make the buttons blue and the border is ugly, hide it',
+          ),
+        ) ?? []
+      ).join('\n');
+      expect(asked).toMatch(/background-color '#2563eb' --on button\b/);
+    },
+    T,
+  );
 });
 
 describe('a nav said as a bar', () => {

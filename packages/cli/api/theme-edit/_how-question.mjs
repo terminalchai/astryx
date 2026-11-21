@@ -4667,7 +4667,11 @@ export function draftAnswer(ctx, env, question) {
   // the pronoun.)
   question = String(question).replace(
     /(^|[,;.!?\n]\s*)([^,;.!?\n]*?\b(?:borders?|shadows?|outlines?|underlines?|backgrounds?|gradients?)\b(?![\s-]*(?:radius|radii|width|colou?r|style|image|spacing)\b)[^,;.!?\n]*)[,;.]\s*(?:(?:so|and|then|please|just)\s+)*(?:hide|remove|drop|lose|get\s+rid\s+of)\s+(?:it|them)\b\s*[.!]?$/i,
-    (m, lead, said) => {
+    (
+      /** @type {string} */ m,
+      /** @type {string} */ lead,
+      /** @type {string} */ said,
+    ) => {
       // ("it" is the nearest look said before it.)
       const looks = [
         ...said.matchAll(
@@ -4705,14 +4709,17 @@ export function draftAnswer(ctx, env, question) {
           /\b(?:is|are|looks?|seems?)\b/i.test(after) &&
           bare.every(w => JUDGING.test(w)) &&
           !partIn(after) &&
-          partIn(before)
+          partIn(before) &&
+          // (The ask before is a change, with its own verb; a complaint
+          // about a look, "the border on cards is ugly", is no ask here.)
+          /\b(?:make|set|use|give|add|change|turn)\b/i.test(before)
         ) {
           partlessLooks.push(word);
-          return `${String(lead).replace(/[!?]/, '.')}${before}`;
+          return `${lead}${before}`;
         }
         return m;
       }
-      const own = String(said);
+      const own = said;
       // (The one part the look's own words name, by its longest match.)
       const found = partLexicon(ctx)
         .parts.map(([re]) => re.exec(` ${own.toLowerCase()} `))

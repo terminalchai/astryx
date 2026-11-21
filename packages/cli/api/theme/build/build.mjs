@@ -5708,8 +5708,7 @@ async function themeBuildInternal(
         at => {
           for (const [layer, {lineOf}] of writtenIn.entries())
             for (const keys of declarationPaths(at, blocks))
-              if (lineOf(keys) != null)
-                return {path: keys, layer};
+              if (lineOf(keys) != null) return {path: keys, layer};
           return null;
         },
         {
@@ -5722,9 +5721,7 @@ async function themeBuildInternal(
     )) {
       // At its line in the theme's file, or in the local theme it extends
       // that writes it (a family member's included).
-      const writer = writtenIn.find(
-        w => w.lineOf(entry.path) != null,
-      );
+      const writer = writtenIn.find(w => w.lineOf(entry.path) != null);
       const line = writer?.lineOf(entry.path) ?? null;
       const file =
         writer && writer.file !== filePath
@@ -6327,6 +6324,14 @@ async function themeBuildInternal(
       );
     }
   }
+  // The text contrast the theme's color tokens give, measured as the theme
+  // editor's check measures a setting: a warning only, so the build's exit
+  // status stays the same.
+  if (!report.compact)
+    for (const p of await (
+      await import('../../theme-edit/_theme-contrast.mjs')
+    ).tokenContrastWarnings(cwd, resolvedTheme))
+      logger.warn(`[warn] ${p.text}${p.fix ? `; fix: ${p.fix}` : ''}`);
 
   // From the outputs' project root, whatever folder the build ran in: the
   // snippet is relative to a file in that project's src/.

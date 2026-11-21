@@ -259,7 +259,7 @@ describe('neutral grays', () => {
           JSON.parse(
             fs.readFileSync(
               new URL(
-                './__golden__/neutral-grays-base-answers.json',
+                './__tests__/neutral-grays-base-answers.json',
                 import.meta.url,
               ),
               'utf8',

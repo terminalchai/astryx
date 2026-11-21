@@ -19556,7 +19556,7 @@ export function draftAnswer(ctx, env, question) {
     const ofMode = mode
       ? matches.filter(st => ofSaidMode(st.mode, mode))
       : matches;
-    const bothModes = modal ? matches.filter(st => !st.mode) : [];
+    const bothModes = matches.filter(st => !st.mode);
     if (mode && !ofMode.length && bothModes.length)
       return {
         text: `${env.slug} sets ${what}${on ? ` on ${on}` : ''} the same in both modes, so it cannot be taken back in ${mode} mode only; an undo that names no mode takes it back in both`,

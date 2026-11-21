@@ -4704,6 +4704,9 @@ export function draftAnswer(ctx, env, question) {
         .split(/\s+/)
         .pop()
         ?.toLowerCase();
+      // (Only a plain word names the state: "non-hovered", "hovered/pressed"
+      // or "*selected*" keeps the earlier reading.)
+      if (before && !/^[a-z]+$/.test(before) && stateWord(before)) return m;
       const state = before
         ? stateWord(
             before === 'active' ? `${before} ${longest[0].trim()}` : before,

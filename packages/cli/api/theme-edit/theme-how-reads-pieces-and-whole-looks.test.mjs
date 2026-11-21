@@ -475,6 +475,21 @@ describe('a look taken away by a pronoun in one state', () => {
     },
     T,
   );
+
+  it(
+    'keeps the earlier reading for a state said with other marks, and never fails',
+    async () => {
+      for (const q of [
+        'the border on the *selected* tab is ugly, hide it',
+        'the shadow on non-hovered cards is too strong, remove it',
+        'the border on hovered/pressed buttons is ugly, hide it',
+      ]) {
+        const lines = (first(await answer(q)) ?? []).join('\n');
+        expect(lines, q).not.toMatch(/(?:border|box-shadow) none --on/);
+      }
+    },
+    T,
+  );
 });
 
 describe('a nav said as a bar', () => {
